@@ -1,0 +1,137 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <fstream>
+#include <cstring>
+#include <time.h>
+#include <omp.h>
+#include <vector>
+#include <math.h>
+#include <iomanip>
+#include <cstdlib>
+
+using namespace std;
+
+
+
+
+
+void MatrixDeterminant() //метод Гауса
+{
+    int i=0,j=0,k=0;
+    int n;
+    //int temp;
+    double det = 1;
+    const double EPS = 1E-9;
+    
+    cout<<"Enter n: ";
+    cin>>n;
+
+//  n=2;
+    srand(1);
+    vector <vector<double>> Matrix (n, vector<double> (n));
+    for (int i=0;i<n;i++)
+    {
+        for (int j=0;j<n;j++)
+        {
+            Matrix[i][j] = rand()%100;
+        }
+    }
+
+
+    
+
+    double temp;
+    for(i=0; i<n; i++)
+    {
+        for(j=i+1 ;j<n; j++)
+        {
+            if(Matrix[i][i]==0)
+            {
+                if(Matrix[i][j]==0)
+                    temp=0;
+            }
+            else temp = Matrix[j][i]/Matrix[i][i];
+            for(k=i; k<n; k++)
+                Matrix[j][k]=Matrix[j][k]-Matrix[i][k]*temp;
+        }
+        det*=Matrix[i][i];
+    }
+
+  
+   
+    cout<<"Determinant: "<<det<<endl;
+   
+
+}
+
+void MatrixDeterminantParallel() //метод Гауса
+{
+    cout<<"Parallel"<<endl;
+    int i=0,j=0,k=0;
+    int n;
+    double det = 1;
+   
+    
+    cout<<"Enter n: ";
+    cin>>n;
+
+    //n=3;
+    srand(1);
+    vector <vector<double>> Matrix (n, vector<double> (n));
+    for (int i=0;i<n;i++)
+    {
+        for (int j=0;j<n;j++)
+        {
+            Matrix[i][j] = rand()%100;
+        }
+    }
+
+ 
+
+    double temp;
+
+    for(i=0; i<n; i++)
+    {
+#pragma omp parallel for private(j,k,temp) shared(i)
+        for(j=i+1 ;j<n; j++)
+        {
+            if(Matrix[i][i]==0)
+            {
+                if(Matrix[i][j]==0)
+                    temp=0;
+            }
+            else temp = Matrix[j][i]/Matrix[i][i];
+
+            for(k=i; k<n; k++)
+                Matrix[j][k]=Matrix[j][k]-Matrix[i][k]*temp;
+        }
+
+    }
+#pragma omp parallel for reduction(*:det)
+    for(i=0; i<n; i++)
+    {
+        det*=Matrix[i][i];
+    }
+
+   
+    
+    
+    cout<<"Determinant: "<<det<<endl;
+ 
+
+}
+ 
+ 
+ 
+int main()
+{
+ 
+    
+    MatrixDeterminant();MatrixDeterminantParallel();
+  
+    
+    system("pause");
+    
+    return 0;
+}
